@@ -1,0 +1,40 @@
+{
+  "name": "ActionHistory",
+  "type": "object",
+  "properties": {
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "create",
+        "update",
+        "delete"
+      ],
+      "description": "Tipe aksie wat uitgevoer is"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Tipe entiteit wat geaffekteer is"
+    },
+    "entity_id": {
+      "type": "string",
+      "description": "ID van entiteit wat geaffekteer is"
+    },
+    "old_data": {
+      "type": "object",
+      "description": "Ou data voor die verandering"
+    },
+    "new_data": {
+      "type": "object",
+      "description": "Nuwe data na die verandering"
+    },
+    "beskrywing": {
+      "type": "string",
+      "description": "Beskrywing van die aksie"
+    }
+  },
+  "required": [
+    "action_type",
+    "entity_type",
+    "entity_id"
+  ]
+}

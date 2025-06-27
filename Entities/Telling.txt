@@ -1,0 +1,55 @@
+{
+  "name": "Telling",
+  "type": "object",
+  "properties": {
+    "kamp_id": {
+      "type": "string",
+      "description": "ID van die kamp waar die telling gedoen is"
+    },
+    "datum": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum van die telling"
+    },
+    "aantal_ooie": {
+      "type": "number",
+      "description": "Aantal ooie getel"
+    },
+    "aantal_ramme": {
+      "type": "number",
+      "description": "Aantal ramme getel"
+    },
+    "aantal_lammers_gemerk": {
+      "type": "number",
+      "description": "Aantal gemerkte lammers"
+    },
+    "aantal_lammers_ongemerk": {
+      "type": "number",
+      "description": "Aantal ongemerkte lammers"
+    },
+    "aantal_lammers_kort": {
+      "type": "number",
+      "description": "Aantal lammers wat kort is"
+    },
+    "aantal_ooie_kort": {
+      "type": "number",
+      "description": "Aantal ooie wat kort is"
+    },
+    "aantal_ooie_dood": {
+      "type": "number",
+      "description": "Aantal dooie ooie"
+    },
+    "totaal_lewend": {
+      "type": "number",
+      "description": "Totaal lewende skape (outomaties bereken)"
+    },
+    "opmerkings": {
+      "type": "string",
+      "description": "Addisionele opmerkings oor die telling"
+    }
+  },
+  "required": [
+    "kamp_id",
+    "datum"
+  ]
+}

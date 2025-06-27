@@ -1,0 +1,98 @@
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PawPrint, MapPin, Tag, Cloud, Wheat, BarChart3, Eye, EyeOff } from "lucide-react";
+import { Button } from '@/components/ui/button';
+
+export default function VerslagStats({ data, loading }) {
+  const [showValues, setShowValues] = useState(true);
+
+  const getStatistieke = () => {
+    const { plase, kampe, tellings, bemarkings, reenvals, voerkrals, voerStoor } = data;
+    const currentYear = new Date().getFullYear();
+
+    // Totaal Skape (mees onlangse telling in aktiewe kampe)
+    const aktieweKampe = kampe.filter(k => k.status === 'aktief');
+    const kampTellings = {};
+    tellings.forEach(telling => {
+      const kamp = aktieweKampe.find(k => k.id === telling.kamp_id);
+      if (kamp && (!kampTellings[telling.kamp_id] || new Date(telling.datum) > new Date(kampTellings[telling.kamp_id].datum))) {
+        kampTellings[telling.kamp_id] = telling;
+      }
+    });
+    const totaalSkape = Object.values(kampTellings).reduce((sum, t) => sum + (t.totaal_lewend || 0), 0);
+
+    // Jaarlikse Bemarkingswaarde
+    const bemarkingsHierdieJaar = bemarkings.filter(b => new Date(b.datum).getFullYear() === currentYear);
+    const jaarlikseWaarde = bemarkingsHierdieJaar.reduce((sum, b) => sum + (b.totale_waarde || 0), 0);
+
+    // Gemiddelde Reenval hierdie jaar
+    const reenvalHierdieJaar = reenvals.filter(r => new Date(r.datum).getFullYear() === currentYear);
+    const totaleReenval = reenvalHierdieJaar.reduce((sum, r) => sum + (r.reenval_mm || 0), 0);
+    const gemiddeldeReenval = reenvalHierdieJaar.length > 0 ? (totaleReenval / reenvalHierdieJaar.length).toFixed(1) : 0;
+    
+    // Jaarlikse Voerkoste
+    const voerAankopeHierdieJaar = (voerStoor || []).filter(v => new Date(v.datum_aangekoop).getFullYear() === currentYear);
+    const jaarlikseVoerKoste = voerAankopeHierdieJaar.reduce((sum, v) => sum + ((v.aantal_sakke || 0) * (v.koste_per_sak || 0)), 0);
+
+    return {
+      plase: plase.length,
+      aktieweKampe: aktieweKampe.length,
+      skape: totaalSkape,
+      bemarkingsWaarde: jaarlikseWaarde,
+      gemiddeldeReenval: gemiddeldeReenval,
+      voerKoste: jaarlikseVoerKoste
+    };
+  };
+
+  if (loading) {
+    return (
+      <Card className="shadow-lg bg-white/80 backdrop-blur-sm">
+        <CardHeader><Skeleton className="h-6 w-48" /></CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-6">
+          {Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const stats = getStatistieke();
+
+  const statItems = [
+    { label: "Totale Plase", value: stats.plase, icon: MapPin, color: "text-emerald-500", blurrable: false },
+    { label: "Aktiewe Kampe", value: stats.aktieweKampe, icon: MapPin, color: "text-amber-500", blurrable: false },
+    { label: "Totale Skape", value: stats.skape, icon: PawPrint, color: "text-blue-500", blurrable: false },
+    { label: "Jaarlikse Bemarkingswaarde", value: `R ${stats.bemarkingsWaarde.toFixed(2)}`, icon: Tag, color: "text-purple-500", blurrable: true },
+    { label: "Gem. Reenval (Huidige Jaar)", value: `${stats.gemiddeldeReenval} mm`, icon: Cloud, color: "text-cyan-500", blurrable: false },
+    { label: "Jaarlikse Voerkoste", value: `R ${stats.voerKoste.toFixed(2)}`, icon: Wheat, color: "text-orange-500", blurrable: true },
+  ];
+
+  return (
+    <Card className="shadow-lg bg-white/80 backdrop-blur-sm">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="flex items-center gap-2 text-xl font-bold text-stone-800">
+          <BarChart3 className="w-5 h-5 text-stone-600" />
+          Algehele Oorsig
+        </CardTitle>
+        <Button variant="outline" size="sm" onClick={() => setShowValues(!showValues)}>
+            {showValues ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+            {showValues ? 'Versteek' : 'Wys'}
+        </Button>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-6">
+        {statItems.map(item => (
+          <div key={item.label} className={`p-4 bg-stone-50 rounded-xl flex items-center gap-4 transition-all ${item.blurrable && !showValues ? 'blur-sm' : ''}`}>
+            <div className={`p-3 rounded-full bg-white shadow-sm`}>
+              <item.icon className={`w-6 h-6 ${item.color}`} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-stone-600">{item.label}</p>
+              <p className="text-xl font-bold text-stone-800">{item.value}</p>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}

@@ -1,0 +1,198 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { TrendingUp, DollarSign, BarChart3, Tag, Eye, EyeOff } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+export default function BemarkingStats({ bemarkings }) {
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [selectedTipeDier, setSelectedTipeDier] = useState('almal');
+  const [globalBlur, setGlobalBlur] = useState(false);
+
+  useEffect(() => {
+    // Listen for global blur events
+    const handleGlobalBlur = (event) => {
+      setGlobalBlur(event.detail);
+    };
+
+    // Check initial state
+    const savedBlur = localStorage.getItem('globalBlurValues');
+    if (savedBlur === 'true') {
+      setGlobalBlur(true);
+    }
+
+    window.addEventListener('globalBlurToggle', handleGlobalBlur);
+    return () => window.removeEventListener('globalBlurToggle', handleGlobalBlur);
+  }, []);
+
+  const toggleGlobalBlur = () => {
+    const newState = !globalBlur;
+    setGlobalBlur(newState);
+    localStorage.setItem('globalBlurValues', newState.toString());
+    
+    // Trigger global event
+    window.dispatchEvent(new CustomEvent('globalBlurToggle', { detail: newState }));
+  };
+
+  const getFilteredBemarkings = () => {
+    let filtered = bemarkings;
+    
+    if (dateRange.start && dateRange.end) {
+      const startDate = new Date(dateRange.start);
+      const endDate = new Date(dateRange.end);
+      endDate.setHours(23, 59, 59, 999);
+      
+      filtered = filtered.filter(bemarking => {
+        try {
+          const bemarkingDate = new Date(bemarking.datum);
+          return bemarkingDate >= startDate && bemarkingDate <= endDate;
+        } catch (error) {
+          return false;
+        }
+      });
+    }
+
+    if (selectedTipeDier !== 'almal') {
+      filtered = filtered.filter(b => b.tipe_dier === selectedTipeDier);
+    }
+
+    return filtered;
+  };
+
+  const filteredBemarkings = getFilteredBemarkings();
+
+  const getTotaleWaarde = () => {
+    return filteredBemarkings.reduce((total, bemarking) => 
+      total + (bemarking.totale_waarde || 0), 0);
+  };
+
+  const getTotaleDiere = () => {
+    return filteredBemarkings.reduce((total, bemarking) => 
+      total + (bemarking.totaal_aantal || 0), 0);
+  };
+
+  const getGemiddeldePrys = () => {
+    const totaalDiere = getTotaleDiere();
+    const totaleWaarde = getTotaleWaarde();
+    return totaalDiere > 0 ? totaleWaarde / totaalDiere : 0;
+  };
+
+  const getGemiddeldeUitslag = () => {
+    const bemarkingsMetUitslag = filteredBemarkings.filter(b => b.uitslag_persentasie && b.uitslag_persentasie > 0);
+    if (bemarkingsMetUitslag.length === 0) return 0;
+    
+    const totaleUitslag = bemarkingsMetUitslag.reduce((sum, b) => sum + (b.uitslag_persentasie || 0), 0);
+    return totaleUitslag / bemarkingsMetUitslag.length;
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="shadow-lg bg-white/80 backdrop-blur-sm">
+        <CardHeader className="p-6 border-b border-stone-100">
+          <CardTitle className="flex items-center gap-2 text-xl font-bold text-stone-800">
+            <BarChart3 className="w-5 h-5 text-purple-500" />
+            Bemarking Stats
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label htmlFor="start-date" className="text-sm">Van Datum</Label>
+                <Input 
+                  id="start-date" 
+                  type="date" 
+                  value={dateRange.start} 
+                  onChange={e => setDateRange(prev => ({...prev, start: e.target.value}))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="end-date" className="text-sm">Tot Datum</Label>
+                <Input 
+                  id="end-date" 
+                  type="date" 
+                  value={dateRange.end} 
+                  onChange={e => setDateRange(prev => ({...prev, end: e.target.value}))}
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label className="text-sm">Tipe Dier</Label>
+              <Select value={selectedTipeDier} onValueChange={setSelectedTipeDier}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="almal">Alle Diere</SelectItem>
+                  <SelectItem value="lammers">Lammers</SelectItem>
+                  <SelectItem value="ou_ooie">Ou Ooie</SelectItem>
+                  <SelectItem value="ramme">Ramme</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button variant="outline" size="sm" onClick={toggleGlobalBlur} className="w-full">
+              {globalBlur ? <Eye className="w-4 h-4 mr-2" /> : <EyeOff className="w-4 h-4 mr-2" />}
+              {globalBlur ? 'Wys Alle Waardes' : 'Versteek Alle Waardes'}
+            </Button>
+          </div>
+
+          <div className="space-y-6 mt-4">
+            <div className={`text-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl transition-all ${globalBlur && 'blur-sm'}`}>
+              <DollarSign className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+              <p className="text-sm text-stone-600 mb-1">Totale Waarde</p>
+              <p className="text-3xl font-bold text-stone-800">R {getTotaleWaarde().toFixed(2)}</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div className={`p-4 border border-stone-200 rounded-xl transition-all ${globalBlur && 'blur-sm'}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-green-500" />
+                  <span className="text-sm font-semibold text-stone-700">Totale Diere</span>
+                </div>
+                <p className="text-2xl font-bold text-stone-800">{getTotaleDiere()}</p>
+              </div>
+
+              <div className={`p-4 border border-stone-200 rounded-xl transition-all ${globalBlur && 'blur-sm'}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm font-semibold text-stone-700">Gem. Prys per Dier</span>
+                </div>
+                <p className="text-2xl font-bold text-stone-800">R {getGemiddeldePrys().toFixed(2)}</p>
+              </div>
+
+              <div className="p-4 border border-stone-200 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <Tag className="w-4 h-4 text-orange-500" />
+                  <span className="text-sm font-semibold text-stone-700">Gem. Uitslag %</span>
+                </div>
+                <p className="text-2xl font-bold text-stone-800">{getGemiddeldeUitslag().toFixed(1)}%</p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-amber-50 rounded-xl">
+              <h4 className="font-semibold text-stone-800 mb-2">Filter Opsomming</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-stone-600">Gefiltrerde Bemarkings:</span>
+                  <span className="font-semibold">{filteredBemarkings.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-stone-600">Tipe Dier:</span>
+                  <span className="font-semibold">
+                    {selectedTipeDier === 'almal' ? 'Alle Diere' : 
+                     selectedTipeDier === 'ou_ooie' ? 'Ou Ooie' : 
+                     selectedTipeDier.charAt(0).toUpperCase() + selectedTipeDier.slice(1)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -1,0 +1,55 @@
+{
+  "name": "Kamp",
+  "type": "object",
+  "properties": {
+    "naam": {
+      "type": "string",
+      "description": "Naam van die kamp"
+    },
+    "plaas_id": {
+      "type": "string",
+      "description": "ID van die plaas waaraan die kamp behoort"
+    },
+    "oppervlakte": {
+      "type": "number",
+      "description": "Oppervlakte van die kamp in hektaar"
+    },
+    "dravermoë": {
+      "type": "number",
+      "description": "Maksimum aantal skape wat die kamp kan onderhou"
+    },
+    "weidingstipe": {
+      "type": "string",
+      "enum": [
+        "natuurlik",
+        "aangeplant",
+        "gemeng"
+      ],
+      "default": "natuurlik"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "aktief",
+        "rus",
+        "onderhoud"
+      ],
+      "default": "aktief"
+    },
+    "laaste_rus_periode_dae": {
+      "type": "number",
+      "default": 0,
+      "description": "Hoeveel dae die kamp laas gerus het"
+    },
+    "rus_begin_datum": {
+      "type": "string",
+      "format": "date",
+      "nullable": true,
+      "description": "Wanneer die huidige rusperiode begin het"
+    }
+  },
+  "required": [
+    "naam",
+    "plaas_id"
+  ]
+}

@@ -1,0 +1,48 @@
+import React from 'react';
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrendingUp } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function StatsCards({ title, value, icon: Icon, bgColor, trend, loading }) {
+  if (loading) {
+    return (
+      <Card className="relative overflow-hidden shadow-lg bg-white/80 backdrop-blur-sm">
+        <CardHeader className="p-6">
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <Skeleton className="h-4 w-24 mb-3" />
+              <Skeleton className="h-8 w-16" />
+            </div>
+            <Skeleton className="w-12 h-12 rounded-xl" />
+          </div>
+          <Skeleton className="h-4 w-32 mt-4" />
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="relative overflow-hidden shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+      <div className={`absolute top-0 right-0 w-32 h-32 transform translate-x-8 -translate-y-8 ${bgColor} rounded-full opacity-10`} />
+      <CardHeader className="p-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="text-sm font-semibold text-stone-600 uppercase tracking-wide">{title}</p>
+            <CardTitle className="text-3xl md:text-4xl font-bold mt-2 text-stone-800">
+              {typeof value === 'number' ? value.toLocaleString() : value}
+            </CardTitle>
+          </div>
+          <div className={`p-3 rounded-xl ${bgColor} bg-opacity-20 shadow-sm`}>
+            <Icon className={`w-6 h-6 ${bgColor.replace('bg-', 'text-')}`} />
+          </div>
+        </div>
+        {trend && (
+          <div className="flex items-center mt-4 text-sm">
+            <TrendingUp className="w-4 h-4 mr-2 text-emerald-500" />
+            <span className="text-stone-600 font-medium">{trend}</span>
+          </div>
+        )}
+      </CardHeader>
+    </Card>
+  );
+}

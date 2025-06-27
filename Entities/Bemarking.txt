@@ -1,0 +1,236 @@
+{
+  "name": "Bemarking",
+  "type": "object",
+  "properties": {
+    "datum": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum van die bemarking"
+    },
+    "tipe_dier": {
+      "type": "string",
+      "enum": [
+        "lammers",
+        "ou_ooie",
+        "ramme"
+      ],
+      "description": "Tipe dier wat bemark word"
+    },
+    "gemiddelde_prys": {
+      "type": "number",
+      "description": "Gemiddelde prys per dier"
+    },
+    "gemiddelde_gewig": {
+      "type": "number",
+      "description": "Gemiddelde gewig per dier in kg"
+    },
+    "uitslag_persentasie": {
+      "type": "number",
+      "description": "Uitslag persentasie van die diere"
+    },
+    "bemarker": {
+      "type": "string",
+      "description": "Naam van die bemarker"
+    },
+    "gradering_telling": {
+      "type": "object",
+      "description": "Telling per gradering kategorie",
+      "properties": {
+        "A0": {
+          "type": "number",
+          "default": 0
+        },
+        "A1": {
+          "type": "number",
+          "default": 0
+        },
+        "A2": {
+          "type": "number",
+          "default": 0
+        },
+        "A3": {
+          "type": "number",
+          "default": 0
+        },
+        "A4": {
+          "type": "number",
+          "default": 0
+        },
+        "A5": {
+          "type": "number",
+          "default": 0
+        },
+        "A6": {
+          "type": "number",
+          "default": 0
+        },
+        "B0": {
+          "type": "number",
+          "default": 0
+        },
+        "B1": {
+          "type": "number",
+          "default": 0
+        },
+        "B2": {
+          "type": "number",
+          "default": 0
+        },
+        "B3": {
+          "type": "number",
+          "default": 0
+        },
+        "B4": {
+          "type": "number",
+          "default": 0
+        },
+        "B5": {
+          "type": "number",
+          "default": 0
+        },
+        "B6": {
+          "type": "number",
+          "default": 0
+        },
+        "C0": {
+          "type": "number",
+          "default": 0
+        },
+        "C1": {
+          "type": "number",
+          "default": 0
+        },
+        "C2": {
+          "type": "number",
+          "default": 0
+        },
+        "C3": {
+          "type": "number",
+          "default": 0
+        },
+        "C4": {
+          "type": "number",
+          "default": 0
+        },
+        "C5": {
+          "type": "number",
+          "default": 0
+        },
+        "C6": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "gradering_pryse": {
+      "type": "object",
+      "description": "Prys per gradering kategorie",
+      "properties": {
+        "A0": {
+          "type": "number",
+          "default": 0
+        },
+        "A1": {
+          "type": "number",
+          "default": 0
+        },
+        "A2": {
+          "type": "number",
+          "default": 0
+        },
+        "A3": {
+          "type": "number",
+          "default": 0
+        },
+        "A4": {
+          "type": "number",
+          "default": 0
+        },
+        "A5": {
+          "type": "number",
+          "default": 0
+        },
+        "A6": {
+          "type": "number",
+          "default": 0
+        },
+        "B0": {
+          "type": "number",
+          "default": 0
+        },
+        "B1": {
+          "type": "number",
+          "default": 0
+        },
+        "B2": {
+          "type": "number",
+          "default": 0
+        },
+        "B3": {
+          "type": "number",
+          "default": 0
+        },
+        "B4": {
+          "type": "number",
+          "default": 0
+        },
+        "B5": {
+          "type": "number",
+          "default": 0
+        },
+        "B6": {
+          "type": "number",
+          "default": 0
+        },
+        "C0": {
+          "type": "number",
+          "default": 0
+        },
+        "C1": {
+          "type": "number",
+          "default": 0
+        },
+        "C2": {
+          "type": "number",
+          "default": 0
+        },
+        "C3": {
+          "type": "number",
+          "default": 0
+        },
+        "C4": {
+          "type": "number",
+          "default": 0
+        },
+        "C5": {
+          "type": "number",
+          "default": 0
+        },
+        "C6": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    },
+    "totaal_aantal": {
+      "type": "number",
+      "description": "Totale aantal diere bemark"
+    },
+    "totale_massa": {
+      "type": "number",
+      "description": "Totale massa van alle diere"
+    },
+    "totale_waarde": {
+      "type": "number",
+      "description": "Totale waarde van verkoop"
+    },
+    "opmerkings": {
+      "type": "string",
+      "description": "Addisionele opmerkings oor die bemarking"
+    }
+  },
+  "required": [
+    "datum",
+    "tipe_dier"
+  ]
+}

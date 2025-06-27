@@ -1,0 +1,283 @@
+
+import React, { useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calculator, Edit, Trash2, Calendar, PawPrint, ChevronDown, ChevronRight, ArrowUpDown } from "lucide-react";
+import { format } from "date-fns";
+import { af } from "date-fns/locale";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+export default function TellingLys({ tellings, getKampNaam, getPlaasNaam, onEdit, onDelete, kampe, plase }) {
+  const [expandedRows, setExpandedRows] = useState(new Set());
+  const [selectedPlaas, setSelectedPlaas] = useState("all");
+  const [deletingId, setDeletingId] = useState(null);
+  const [sortOrder, setSortOrder] = useState('desc'); // Added state for sorting order
+  const [visibleCount, setVisibleCount] = useState(5); // Added state for controlling visible items
+
+  const formatDate = (dateString) => {
+    try {
+      if (!dateString) return 'Onbekende Datum';
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Ongeldige Datum';
+      return format(date, 'dd MMM yyyy', { locale: af });
+    } catch (error) {
+      console.error('Datum formaat fout:', error);
+      return 'Ongeldige Datum';
+    }
+  };
+
+  const handleDelete = async (telling) => {
+    if (deletingId) return; // Prevent multiple deletes
+
+    const confirmed = window.confirm(`Is jy seker jy wil hierdie telling van ${getKampNaam(telling.kamp_id)} op ${formatDate(telling.datum)} skrap?`);
+
+    if (confirmed) {
+      setDeletingId(telling.id);
+      try {
+        await onDelete(telling);
+      } catch (error) {
+        console.error("Fout met skrap van telling:", error);
+        alert("Kon nie telling skrap nie. Dit is moontlik reeds geskrap of bestaan nie meer nie.");
+      } finally {
+        setDeletingId(null);
+      }
+    }
+  };
+
+  const toggleRow = (tellingId) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(tellingId)) {
+      newExpanded.delete(tellingId);
+    } else {
+      newExpanded.add(tellingId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  const getFilteredAndSortedTellings = () => {
+    const filtered = selectedPlaas === "all"
+      ? tellings
+      : tellings.filter(t => kampe.some(k => k.id === t.kamp_id && k.plaas_id === selectedPlaas));
+
+    return filtered.sort((a, b) => {
+        const dateA = new Date(a.datum);
+        const dateB = new Date(b.datum);
+        return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+  };
+
+  const filteredTellings = getFilteredAndSortedTellings();
+
+  return (
+    <Card className="shadow-lg bg-white/80 backdrop-blur-sm">
+      <CardHeader className="p-6 border-b border-stone-100">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <CardTitle className="flex items-center gap-2 text-xl font-bold text-stone-800">
+            <Calculator className="w-5 h-5 text-blue-500" />
+            Alle Tellings
+          </CardTitle>
+
+          <div className="flex items-center gap-4">
+            <Select value={selectedPlaas} onValueChange={setSelectedPlaas}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Kies Plaas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle Plase</SelectItem>
+                {plase.map(plaas => (
+                  <SelectItem key={plaas.id} value={plaas.id}>
+                    {plaas.naam}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={sortOrder} onValueChange={setSortOrder}>
+                <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Sorteer Datum" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="desc">Nuutste Bo</SelectItem>
+                    <SelectItem value="asc">Oudste Bo</SelectItem>
+                </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        {filteredTellings.length > 0 ? (
+          <>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-stone-50">
+                    <TableHead className="w-8"></TableHead>
+                    <TableHead className="font-semibold">Plaas</TableHead>
+                    <TableHead className="font-semibold">Kamp</TableHead>
+                    <TableHead className="font-semibold">Datum</TableHead>
+                    <TableHead className="font-semibold">Totaal Lewend</TableHead>
+                    <TableHead className="font-semibold">Aksies</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTellings.slice(0, visibleCount).map((telling) => (
+                    <React.Fragment key={telling.id}>
+                      <TableRow className="hover:bg-stone-50 transition-colors">
+                        <TableCell>
+                          <Collapsible>
+                            <CollapsibleTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-8 h-8 p-0"
+                                onClick={() => toggleRow(telling.id)}
+                              >
+                                {expandedRows.has(telling.id) ? (
+                                  <ChevronDown className="w-4 h-4" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4" />
+                                )}
+                              </Button>
+                            </CollapsibleTrigger>
+                          </Collapsible>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium text-stone-800">
+                            {getPlaasNaam(telling.kamp_id)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <PawPrint className="w-4 h-4 text-emerald-600" />
+                            <span className="font-medium text-stone-800">
+                              {getKampNaam(telling.kamp_id)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-stone-500" />
+                            {formatDate(telling.datum)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-800 font-bold">
+                            {telling.totaal_lewend || 0} skape
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => onEdit(telling)}
+                              className="h-8 w-8 p-0 hover:bg-blue-100"
+                            >
+                              <Edit className="w-4 h-4 text-blue-600" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDelete(telling)}
+                              disabled={deletingId === telling.id}
+                              className="h-8 w-8 p-0 hover:bg-red-100"
+                            >
+                              <Trash2 className={`w-4 h-4 ${deletingId === telling.id ? 'text-gray-400' : 'text-red-600'}`} />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+
+                      {expandedRows.has(telling.id) && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="bg-stone-25 p-0">
+                            <div className="p-6 bg-stone-25">
+                              <h4 className="font-semibold text-stone-800 mb-4">Telling Details</h4>
+                              <div className="grid md:grid-cols-3 gap-6">
+                                <div className="space-y-3">
+                                  <h5 className="font-medium text-green-700">Lewende Diere</h5>
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                      <span>Ooie:</span>
+                                      <span className="font-semibold">{telling.aantal_ooie || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span>Ramme:</span>
+                                      <span className="font-semibold">{telling.aantal_ramme || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span>Lammers Gemerk:</span>
+                                      <span className="font-semibold">{telling.aantal_lammers_gemerk || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span>Lammers Ongemerk:</span>
+                                      <span className="font-semibold">{telling.aantal_lammers_ongemerk || 0}</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                  <h5 className="font-medium text-red-700">Kort en Dood</h5>
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                      <span>Lammers Kort:</span>
+                                      <span className="font-semibold text-red-600">{telling.aantal_lammers_kort || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span>Ooie Kort:</span>
+                                      <span className="font-semibold text-red-600">{telling.aantal_ooie_kort || 0}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span>Ooie Dood:</span>
+                                      <span className="font-semibold text-red-600">{telling.aantal_ooie_dood || 0}</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                  <h5 className="font-medium text-blue-700">Opsomming</h5>
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between font-semibold">
+                                      <span>Totaal Lewend:</span>
+                                      <span className="text-blue-600">{telling.totaal_lewend || 0}</span>
+                                    </div>
+                                    {telling.opmerkings && (
+                                      <div className="mt-3">
+                                        <span className="font-medium">Opmerkings:</span>
+                                        <p className="text-stone-600 mt-1">{telling.opmerkings}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            {filteredTellings.length > visibleCount && (
+                <div className="p-4 text-center">
+                    <Button variant="outline" onClick={() => setVisibleCount(prev => prev + 5)}>
+                        Wys Meer
+                    </Button>
+                </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-12 text-stone-500">
+            <Calculator className="w-16 h-16 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium mb-2">Geen tellings nog nie</p>
+            <p>Begin deur jou eerste skaaptelling te doen</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

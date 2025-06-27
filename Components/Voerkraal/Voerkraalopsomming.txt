@@ -1,0 +1,49 @@
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Users } from "lucide-react";
+
+export default function VoerkralOpsomming({ voerkrals }) {
+    const getSkaapTipesOpsomming = () => {
+        const opsomming = {
+            Lammers: 0,
+            'Ou Ooie': 0,
+            Ramme: 0,
+            Ooie: 0,
+        };
+
+        voerkrals.forEach(kraal => {
+            if (kraal.aktief && kraal.skaap_getalle) {
+                opsomming.Lammers += kraal.skaap_getalle.lammers || 0;
+                opsomming['Ou Ooie'] += kraal.skaap_getalle.ou_ooie || 0;
+                opsomming.Ramme += kraal.skaap_getalle.ramme || 0;
+                opsomming.Ooie += kraal.skaap_getalle.ooie || 0;
+            }
+        });
+
+        return opsomming;
+    };
+
+    const opsomming = getSkaapTipesOpsomming();
+
+    return (
+        <Card className="shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl font-bold text-stone-800">
+                    <Users className="w-5 h-5 text-stone-600" />
+                    Voerkraal Skaap Opsomming
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(opsomming).map(([tipe, aantal]) => (
+                        <div key={tipe} className="p-3 bg-stone-50 rounded-lg">
+                            <p className="text-sm font-semibold text-stone-600">{tipe}</p>
+                            <p className="text-lg font-bold text-stone-800">{aantal}</p>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}

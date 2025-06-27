@@ -1,0 +1,108 @@
+
+import React, { useState, useEffect } from "react";
+import { Telling, Kamp, Plaas, Voerkral, VoerStoor } from "@/entities/all";
+import StatsCards from "../components/dashboard/StatsCards";
+import OnlangseTellings from "../components/dashboard/OnlangseTellings";
+import PlaasOorsig from "../components/dashboard/PlaasOorsig";
+import VoerkralOpsomming from "../components/dashboard/VoerkralOpsomming";
+import AppMenu from "../components/dashboard/AppMenu";
+import { PawPrint, Shield, Heart } from "lucide-react";
+
+export default function Dashboard() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    ooie: 0,
+    ramme: 0,
+    totaleLammers: 0,
+  });
+  const [tellings, setTellings] = useState([]);
+  const [kampe, setKampe] = useState([]);
+  const [plase, setPlase] = useState([]);
+  const [voerkrals, setVoerkrals] = useState([]);
+  const [voerStoor, setVoerStoor] = useState([]);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [kampData, tellingData, plaasData, voerkralData, voerStoorData] = await Promise.all([
+        Kamp.list(),
+        Telling.list("-datum"),
+        Plaas.list(),
+        Voerkral.list(),
+        VoerStoor.list("-datum_aangekoop"),
+      ]);
+
+      const aktieweKampe = kampData.filter(k => k.status === 'aktief');
+      const kampTellings = {};
+      tellingData.forEach(telling => {
+        const kamp = aktieweKampe.find(k => k.id === telling.kamp_id);
+        if (kamp && (!kampTellings[telling.kamp_id] || new Date(telling.datum) > new Date(kampTellings[telling.kamp_id].datum))) {
+          kampTellings[telling.kamp_id] = telling;
+        }
+      });
+      const meesOnlangseTellings = Object.values(kampTellings);
+
+      setStats({
+        ooie: meesOnlangseTellings.reduce((sum, t) => sum + (t.aantal_ooie || 0), 0),
+        ramme: meesOnlangseTellings.reduce((sum, t) => sum + (t.aantal_ramme || 0), 0),
+        totaleLammers: meesOnlangseTellings.reduce((sum, t) => sum + (t.aantal_lammers_gemerk || 0) + (t.aantal_lammers_ongemerk || 0), 0),
+      });
+      setTellings(tellingData);
+      setKampe(kampData);
+      setPlase(plaasData);
+      setVoerkrals(voerkralData);
+      setVoerStoor(voerStoorData);
+    } catch (error) {
+      console.error("Fout met data laai:", error);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-amber-50 to-orange-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-stone-800 mb-2">
+              Plaas Dashboard
+            </h1>
+            <p className="text-stone-600 text-lg">
+              Welkom terug! Hier is jou plaasaktiwiteit oorsig.
+            </p>
+          </div>
+          <AppMenu />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <StatsCards title="Totale Ooie" value={stats.ooie} icon={Heart} bgColor="bg-pink-500" loading={loading} />
+          <StatsCards title="Totale Ramme" value={stats.ramme} icon={Shield} bgColor="bg-blue-500" loading={loading} />
+          <StatsCards title="Totale Lammers" value={stats.totaleLammers} icon={PawPrint} bgColor="bg-green-500" loading={loading} />
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <OnlangseTellings tellings={tellings.slice(0, 10)} kampe={kampe} loading={loading} />
+            <VoerkralOpsomming 
+              voerkrals={voerkrals} 
+              plase={plase} 
+              voerStoor={voerStoor}
+              loading={loading} 
+            />
+          </div>
+          <div className="space-y-6">
+            <PlaasOorsig 
+              plase={plase} 
+              kampe={kampe} 
+              tellings={tellings}
+              loading={loading} 
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

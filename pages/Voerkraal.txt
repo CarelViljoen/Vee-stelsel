@@ -1,0 +1,104 @@
+import React, { useState, useEffect } from "react";
+import { Voerkral, VoerStoor, Plaas, ActionHistory } from "@/entities/all";
+import { Button } from "@/components/ui/button";
+import { Plus, Edit } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import VoerkralForm from "../components/voerkral/VoerkralForm";
+import VoerkralOorsig from "../components/voerkral/VoerkralOorsig";
+import VoerVerbruik from "../components/voerkral/VoerVerbruik";
+import VoerkralOpsomming from "../components/voerkral/VoerkralOpsomming";
+
+export default function VoerkralPage() {
+  const [voerkrals, setVoerkrals] = useState([]);
+  const [voerStoor, setVoerStoor] = useState([]);
+  const [plase, setPlase] = useState([]);
+  const [showVoerkralForm, setShowVoerkralForm] = useState(false);
+  const [editingVoerkral, setEditingVoerkral] = useState(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    const [voerkralData, stoorData, plaasData] = await Promise.all([
+      Voerkral.list("naam"), // Sorteer op naam
+      VoerStoor.list(),
+      Plaas.list()
+    ]);
+    setVoerkrals(voerkralData);
+    setVoerStoor(stoorData);
+    setPlase(plaasData);
+  };
+
+  const handleVoerkralSubmit = async (voerkralData) => {
+    let oldData = null;
+    if (editingVoerkral) {
+      oldData = voerkrals.find(v => v.id === editingVoerkral.id);
+      await Voerkral.update(editingVoerkral.id, voerkralData);
+    } else {
+      await Voerkral.create(voerkralData);
+    }
+    
+    // Create history record
+    await ActionHistory.create({
+        action_type: editingVoerkral ? "update" : "create",
+        entity_type: "Voerkral",
+        entity_id: editingVoerkral?.id || voerkralData.id,
+        old_data: oldData || {},
+        new_data: voerkralData,
+        beskrywing: `${editingVoerkral ? 'Wysig' : 'Skep'} voerkraal: ${voerkralData.naam}`
+    });
+
+    setShowVoerkralForm(false);
+    setEditingVoerkral(null);
+    loadData();
+  };
+
+  const handleEditVoerkral = (voerkral) => {
+    setEditingVoerkral(voerkral);
+    setShowVoerkralForm(true);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-amber-50 to-orange-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-stone-800 mb-2">
+              Voerkraal
+            </h1>
+            <p className="text-stone-600 text-lg">
+              Bestuur jou voerkrale en voerstoor hier
+            </p>
+          </div>
+          <div className="flex gap-3 w-full md:w-auto">
+            <Button 
+              onClick={() => { setEditingVoerkral(null); setShowVoerkralForm(true); }}
+              className="flex-1 md:flex-none bg-orange-600 hover:bg-orange-700 shadow-lg"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Nuwe Voerkraal
+            </Button>
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {showVoerkralForm && (
+            <VoerkralForm
+              voerkral={editingVoerkral}
+              plase={plase}
+              voerStoor={voerStoor}
+              onSubmit={handleVoerkralSubmit}
+              onCancel={() => {
+                setShowVoerkralForm(false);
+                setEditingVoerkral(null);
+              }}
+            />
+          )}
+        </AnimatePresence>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <VoerkralOorsig 
+              voerkrals={voerkrals}
+ 

@@ -1,0 +1,61 @@
+{
+  "name": "Inenting",
+  "type": "object",
+  "properties": {
+    "kamp_id": {
+      "type": "string",
+      "description": "ID van die kamp waar die inenting gedoen is"
+    },
+    "datum": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum van die inenting"
+    },
+    "tipe_inenting": {
+      "type": "string",
+      "description": "Tipe inenting"
+    },
+    "tipe_dier": {
+      "type": "string",
+      "enum": [
+        "ooie",
+        "ramme",
+        "lammers",
+        "almal"
+      ],
+      "default": "almal",
+      "description": "Tipe dier wat geïnent is"
+    },
+    "aantal_diere": {
+      "type": "number",
+      "description": "Aantal diere geïnent"
+    },
+    "medikasie_naam": {
+      "type": "string",
+      "description": "Naam van die medikasie/entstof"
+    },
+    "dosering": {
+      "type": "string",
+      "description": "Dosering per dier"
+    },
+    "koste": {
+      "type": "number",
+      "description": "Totale koste van inenting"
+    },
+    "volgende_inenting": {
+      "type": "string",
+      "format": "date",
+      "description": "Datum wanneer volgende inenting nodig is"
+    },
+    "opmerkings": {
+      "type": "string",
+      "description": "Addisionele opmerkings"
+    }
+  },
+  "required": [
+    "kamp_id",
+    "datum",
+    "tipe_inenting",
+    "aantal_diere"
+  ]
+}

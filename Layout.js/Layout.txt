@@ -1,0 +1,200 @@
+
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { 
+  Home, 
+  MapPin, 
+  Calculator, 
+  Tag, 
+  BarChart3,
+  Wheat,
+  PawPrint,
+  Syringe,
+  Cloud
+} from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+
+export default function Layout({ children, currentPageName }) {
+  const location = useLocation();
+  const [features, setFeatures] = useState({
+    showVoerkraal: true,
+    showInentings: true,
+    showReenval: true,
+    showBemarking: true,
+    showVerslae: true,
+  });
+
+  useEffect(() => {
+    // Load feature settings
+    const savedFeatures = localStorage.getItem('appFeatures');
+    if (savedFeatures) {
+      setFeatures(JSON.parse(savedFeatures));
+    }
+
+    // Listen for feature updates
+    const handleFeaturesUpdate = (event) => {
+      setFeatures(event.detail);
+    };
+
+    window.addEventListener('featuresUpdated', handleFeaturesUpdate);
+    return () => window.removeEventListener('featuresUpdated', handleFeaturesUpdate);
+  }, []);
+
+  const getVisibleNavigationItems = () => {
+    const allItems = [
+      {
+        title: "Dashboard",
+        url: createPageUrl("Dashboard"),
+        icon: Home,
+        alwaysShow: true,
+      },
+      {
+        title: "Plase & Kampe",
+        url: createPageUrl("Plase"),
+        icon: MapPin,
+        alwaysShow: true,
+      },
+      {
+        title: "Tellings",
+        url: createPageUrl("Tellings"),
+        icon: Calculator,
+        alwaysShow: true,
+      },
+      {
+        title: "Bemarking",
+        url: createPageUrl("Bemarking"),
+        icon: Tag,
+        show: features.showBemarking,
+      },
+      {
+        title: "Inentings",
+        url: createPageUrl("Inentings"),
+        icon: Syringe,
+        show: features.showInentings,
+      },
+      {
+        title: "Reenval",
+        url: createPageUrl("Reenval"),
+        icon: Cloud,
+        show: features.showReenval,
+      },
+      {
+        title: "Voerkraal",
+        url: createPageUrl("Voerkral"),
+        icon: Wheat,
+        show: features.showVoerkraal,
+      },
+      {
+        title: "Verslae",
+        url: createPageUrl("Verslae"),
+        icon: BarChart3,
+        show: features.showVerslae,
+      },
+    ];
+
+    return allItems.filter(item => item.alwaysShow || item.show);
+  };
+
+  const navigationItems = getVisibleNavigationItems();
+
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-green-50 via-amber-50 to-orange-50">
+        <style>
+          {`
+            :root {
+              --plaas-primary: #059669; /* emerald-600 */
+              --plaas-secondary: #d97706; /* amber-600 */
+              --plaas-accent: #eab308; /* yellow-500 */
+              --plaas-neutral: #78716c; /* stone-500 */
+              --plaas-light: #f5f5f4; /* stone-100 */
+            }
+            .blur-money { filter: blur(4px); }
+          `}
+        </style>
+        
+        <Sidebar className="border-r border-stone-200 bg-white/80 backdrop-blur-sm">
+          <SidebarHeader className="border-b border-stone-200 p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Wheat className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="font-bold text-stone-800 text-lg">PlaasStelstel</h2>
+                <p className="text-xs text-stone-600">Omvattende Boerdery Bestuur</p>
+              </div>
+            </div>
+          </SidebarHeader>
+          
+          <SidebarContent className="p-3">
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-xs font-semibold text-stone-600 uppercase tracking-wider px-3 py-2">
+                Navigasie
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {navigationItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        asChild 
+                        className={`hover:bg-emerald-50 hover:text-emerald-700 transition-all duration-300 rounded-xl mb-1 ${
+                          location.pathname === item.url 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm' 
+                            : 'text-stone-700'
+                        }`}
+                      >
+                        <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
+                          <item.icon className="w-5 h-5" />
+                          <span className="font-medium">{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+
+          <SidebarFooter className="border-t border-stone-200 p-4 bg-white/50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-stone-300 to-stone-400 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">B</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-stone-800 text-sm truncate">Boer</p>
+                <p className="text-xs text-stone-600 truncate">Omvattende Plaasbestuur</p>
+              </div>
+            </div>
+          </SidebarFooter>
+        </Sidebar>
+
+        <main className="flex-1 flex flex-col">
+          <header className="bg-white/80 backdrop-blur-sm border-b border-stone-200 px-6 py-4 md:hidden">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="hover:bg-stone-100 p-2 rounded-xl transition-colors duration-300" />
+              <h1 className="text-xl font-bold text-stone-800">PlaasStelstel</h1>
+            </div>
+          </header>
+
+          <div className="flex-1 overflow-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+    </SidebarProvider>
+  );
+}

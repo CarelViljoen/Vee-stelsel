@@ -1,0 +1,48 @@
+
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MapPin, Wheat, TrendingUp, Heart, Shield, PawPrint, AlertTriangle, Skull } from "lucide-react";
+
+export default function PlaasOorsig({ plase, kampe, tellings, loading }) {
+  if (loading) {
+    return (
+      <Card className="shadow-lg bg-white/80 backdrop-blur-sm">
+        <CardHeader className="p-6 border-b border-stone-100">
+          <CardTitle className="text-xl font-bold text-stone-800">Plaas Oorsig</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            {Array(3).fill(0).map((_, i) => (
+              <div key={i} className="p-4 border rounded-lg">
+                <div className="flex items-center gap-3 mb-3">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <Skeleton className="h-5 w-32" />
+                </div>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const getKampeVirPlaas = (plaasId) => {
+    return kampe.filter(kamp => kamp.plaas_id === plaasId);
+  };
+
+  const getPlaasStats = (plaasId) => {
+    const plaasKampe = getKampeVirPlaas(plaasId);
+    const aktieweKampe = plaasKampe.filter(k => k.status === 'aktief');
+    
+    const kampTellings = {};
+    tellings.forEach(telling => {
+      const kamp = aktieweKampe.find(k => k.id === telling.kamp_id);
+      if (kamp && (!kampTellings[telling.kamp_id] || new Date(telling.datum) > new Date(kampTellings[telling.kamp_id].datum))) {
+        kampTellings[telling.kamp_id] = telling;
+      }
+    });
+ 
